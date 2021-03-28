@@ -26,7 +26,7 @@ authToken = graph.getToken(TG_SECRET)
 # results = graph.getEndpoints()
 # print(results)
 
-st.title("TigerGraph Graphical Query Utility")
+st.title("TigerGraph Visual Query Tool")
 
 st.write("Welcome to my first TigerGraph + Streamlit project connecting a web application to a graph database and visualizing query data.")
 
