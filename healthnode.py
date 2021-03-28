@@ -8,7 +8,7 @@ import flat_table
 load_dotenv()
 TG_HOST = "https://healthnode.i.tgcloud.io"
 TG_GRAPHNAME = "faers"
-TG_USERNAME = getenv('USERNAME')
+TG_USERNAME = "tigergraph"
 TG_PASSWORD = getenv('PASSWORD')
 TG_SECRET = getenv('SECRET')
 
@@ -33,43 +33,55 @@ st.write("Welcome to my first TigerGraph and Streamlit project connecting a web 
 sb = st.sidebar
 selection = sb.selectbox("Function Select", ["Run an Installed Query", "Write a Custom Query"])
 
-data = pass
+df = None
+data = None
 
 if selection == "Run an Installed Query":
     st.header("Run an Installed Query")
-    st.write("This interface will allow you to run any queries currently installed in the cloud database. Pick a query, specify arguments on-the-fly, and view the output as a table, chart, or map.")
+    st.write("Run any queries currently installed on the graph database. Pick a query, define arguments on-the-fly, and choose how to display the output.")
     
     st.subheader("Currently Installed Queries")
-    if st.checkbox("Show queries"):
-        df = pd.DataFrame(graph.getInstalledQueries())
-        data = flat_table.normalize(df)
-        st.table(data)
+    queries = list(map(lambda q : q["parameters"]["query"]["default"], graph.getInstalledQueries().values()))
     
-    st.header("Query Example")
+    installed = st.selectbox("Currently Installed Queries", queries)
+    params = st.text_input("Enter parameters separated with '&'", "companyName=PFIZER")
+    query = graph.runInstalledQuery(installed, params)
+    df = pd.DataFrame(query[0])
+    # st.header("Query Example")
 
-    # run installed query
-    query = graph.runInstalledQuery("topSideEffectsForTopDrugs", params="companyName=PFIZER&k=5&role=PS")
+    # # run installed query
+    # query = graph.runInstalledQuery("mostReportedDrugsForCompany_v2", params="companyName=PFIZER&k=5&role=PS")
 
-    # convert raw query to pandas Data Frame
-    df = pd.DataFrame(query[0]["TopDrugs"])
-    data = flat_table.normalize(df)
+    # # convert raw query to pandas Data Frame
+    # df = pd.DataFrame(query[0]["TopDrugs"])
 
-    # print to streamlit app
-    st.table(data)
 elif selection == "Write a Custom Query":
-    pass
+    st.header("Write a Custom Query")
+    st.write("Write an interpreted GSQL query to the database, define arguments, and choose how ot display the output.")
+    user_input = st.text_area("Write a Query", 
+    '''INTERPRET QUERY (STRING companyName) FOR GRAPH $graphname { // NOTE: DO NOT REMOVE THIS LINE
+        PRINT companyName;
+    }
+    ''',
+    height=250)
+    params = st.text_input("Enter parameters separated with '&'", "companyName=PFIZER")
+    query = graph.runInterpretedQuery(user_input, params)
+    df = pd.DataFrame(query[0], [x for x in range(0, len(query[0]))])
 
 st.header("Output")
 data_format = st.selectbox("Output Format", ["Table", "Chart", "Map"])
 if data_format == "Table":
+    data = flat_table.normalize(df)
     st.table(data)
 elif data_format == "Chart":
     chart_format = st.selectbox("Chart Type", ["Line Chart", "Area Chart", "Bar Chart"])
+    data = df
     if chart_format == "Line Chart":
-        st.line_chart()
+        st.line_chart(data)
     elif chart_format == "Area Chart":
-        pass
+        st.area_chart(data)
     elif chart_format == "Bar Chart":
-        pass 
-elif data_format == "Map":
-    pass
+        st.bar_chart(data)
+# elif data_format == "Map": # WIP
+#     data = df
+#     st.map(data)
