@@ -3,3 +3,6 @@
 
 # Local
 .env
+
+# Python
+__pycache__
