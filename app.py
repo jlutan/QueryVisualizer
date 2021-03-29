@@ -1,12 +1,13 @@
 import pyTigerGraphBeta as tg
 import streamlit as st
-import pandas as pd
 
 import tasks
 
 def main():
-    """ Gets login credentials from the user and
-    establishes a connection to the TigerGraph database """
+    """ 
+    Gets login credentials from the user and
+    establishes a connection to the TigerGraph database 
+    """
     
     st.title("TigerGraph Visual Query Tool")
 
@@ -29,8 +30,9 @@ def main():
             password=password, 
             graphname=graphname, 
         )
-        st.success("Connected to {} graph".format(graphname))
+        st.success(f"Connected to {graphname} graph")
         secret = sb.text_input("Secret", type="password")
-        if (sb.checkbox("Confirm Secret")):
+        if (sb.checkbox("Get Auth Token")):
+            # get auth token using user inputted secret
             authToken = graph.getToken(secret)
             tasks.main(graph, authToken)
