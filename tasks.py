@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import flat_table
-import networkx as nx
-import pandas.plotting._matplotlib
 
 def main(graph, authToken):
     """ 
